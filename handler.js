@@ -37,16 +37,14 @@ module.exports.realizarfinalpedidosaws = async (event) => {
     ),
   };
   connection.end();
-  // Use this code if you don't use the http event with the LAMBDA-PROXY integration
-  // return { message: 'Go Serverless v1.0! Your function executed successfully!', event };
 };
 
 
 module.exports.recibirfinalpedidosaws = async (event) => {
-  const pedidos = querystring.parse(event["body"])
-  const queryclient = "SELECT * FROM centrocomercial.pedido where id=?;";
+  const pedidos = event.queryStringParameters.id;
+  const queryPedido = "SELECT * FROM centrocomercial.pedido WHERE id = ?";
   const consultar = await new Promise((resolve, reject) => {
-     connection.query(queryclient,[pedidos.id], (err, results) => {
+    connection.query(queryPedido, [pedidos], (err, results) => {
       if (err) {
         reject(err);
       } else {
@@ -54,19 +52,14 @@ module.exports.recibirfinalpedidosaws = async (event) => {
       }
     });
   });
-  connection.end();
   return {
     statusCode: 200,
     body: JSON.stringify(
       {
-        message: "success",
-        pedido: consultar,
+        pedido: consultar[0],
       },
       null,
       2
-    ),
-  };
-  
-  // Use this code if you don't use the http event with the LAMBDA-PROXY integration
-  // return { message: 'Go Serverless v1.0! Your function executed successfully!', event };
+    ),
+  };
 };
