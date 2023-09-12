@@ -1,4 +1,5 @@
 'use strict';
+const aws=require('aws-sdk');
 const querystring = require("querystring")
 const mysql=require('mysql');
 const connection=mysql.createConnection({
@@ -21,6 +22,35 @@ module.exports.realizarfinalpedidosaws = async (event) => {
       }
     });
   });
+  const messageBody = {
+    Cliente: pedidos.cliente_id,
+    Producto: pedidos.producto_id,
+    Cantidad: pedidos.cantidadund,
+    ValorTotal: pedidos.valor_total,
+  };
+  
+  const params = {
+    MessageBody: JSON.stringify(messageBody),
+    QueueUrl: '',
+  };
+  await sqs.sendMessage(params).promise();
+  const paramsEmail = {
+    Source: "osneider.botero26789@ucaldas.edu.co", 
+    Destination: {
+      ToAddresses: [clienteEmail],
+    },
+    Message: {
+      Subject: {
+        Data: "Detalles del pedido",
+      },
+      Body: {
+        Text: {
+          Data: `Detalles del pedido:\n\nCliente: ${clienteNombre}\nProducto: ${producto_nombre}\nValor unitario: ${producto_valor}\nCantidad: ${pedido.cantidad}\nValor Total: ${pedido.valor_total}`,
+        },
+      },
+    },
+  };
+  await ses.sendEmail(paramsEmail).promise();
   return {
     statusCode: 200,
     body: JSON.stringify(
